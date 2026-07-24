@@ -5,12 +5,15 @@ from PyQt5.QtCore import  QVariant
 from processing.core.Processing import Processing
 import processing
 import random
+import os
 import pandas as pd
 from processing.tools import dataobjects
 
 from helper import *
 
-path = "C:/Users/ASUS/AppData/Local/Temp/tmp4d4rmkcc.py"
+# QGIS install prefix: set the QGIS_PREFIX_PATH environment variable,
+# e.g. "C:/Program Files/QGIS 3.32/apps/qgis" (Windows) or "/usr" (Linux)
+path = os.environ.get("QGIS_PREFIX_PATH", "C:/Program Files/QGIS 3.32/apps/qgis")
 QgsApplication.setPrefixPath(path, True)
 qgs = QgsApplication([], False)
 
@@ -254,4 +257,3 @@ def convert_layer_to_dataframe(layer):
     df = pd.DataFrame(features_list)
 
     return df
-

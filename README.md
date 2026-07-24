@@ -1,34 +1,23 @@
 <div align="center">
-<h1 align="center">
-<img src="https://raw.githubusercontent.com/PKief/vscode-material-icon-theme/ec559a9f6bfd399b82bb44393651661b08aaf7ba/icons/folder-markdown-open.svg" width="100" />
-<br>ITN</h1>
-<h3> A Python Module for cleaning P3B template, tracking and validating data during data collection and creating random location to revisit after implementation </h3>
-<h3>◦ Developed with the software and tools below.</h3>
 
-<p align="center">
-<img src="https://img.shields.io/badge/Jupyter-F37626.svg?style=flat-square&logo=Jupyter&logoColor=white" alt="Jupyter" />
-<img src="https://img.shields.io/badge/Qgis-589632.svg?style=flat-square&logo=Qgis&logoColor=white" alt="Qgis" />
-<img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat-square&logo=Python&logoColor=white" alt="Python" />
-<img src="https://img.shields.io/badge/pandas-150458.svg?style=flat-square&logo=pandas&logoColor=white" alt="pandas" />
-</p>
-<img src="https://img.shields.io/github/license/Mrsatatima/p3b?style=flat-square&color=5D6D7E" alt="GitHub license" />
-<img src="https://img.shields.io/github/last-commit/Mrsatatima/p3b?style=flat-square&color=5D6D7E" alt="git-last-commit" />
-<img src="https://img.shields.io/github/commit-activity/m/Mrsatatima/p3b?style=flat-square&color=5D6D7E" alt="GitHub commit activity" />
-<img src="https://img.shields.io/github/languages/top/Mrsatatima/p3b?style=flat-square&color=5D6D7E" alt="GitHub top language" />
+# ITN
+
+### A PyQGIS + pandas toolkit for ITN (bed net) mass-campaign data: cleaning P3B microplans, PPS cluster sampling for post-campaign revisits, tracking and validating field data collection, and matching settlements to the GRID3 database
+
+Developed with: Python 3 · QGIS 3.32 (PyQGIS) · pandas · openpyxl
+
 </div>
 
 ---
 
 ## 📖 Table of Contents
-- [📖 Table of Contents](#-table-of-contents)
+
 - [📍 Overview](#-overview)
 - [📦 Features](#-features)
-- [📂 repository Structure](#-repository-structure)
-- [⚙️ Modules](#modules)
+- [🗺 Built with PyQGIS](#-built-with-pyqgis)
+- [📂 Repository Structure](#-repository-structure)
+- [⚙️ Modules](#️-modules)
 - [🚀 Getting Started](#-getting-started)
-    - [🔧 Installation](#-installation)
-    - [🤖 Running p3b](#-running-p3b)
-    - [🧪 Tests](#-tests)
 - [🛣 Roadmap](#-roadmap)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -36,111 +25,126 @@
 
 ---
 
-
 ## 📍 Overview
 
-A module mostly focus on cleaning the p3b template and turn it to a format you can use for various data analysis. It then provides you with tools you can use to:
-- create 8 random settlements google directions links per LGA for post-implementation revisits to confirm the accuracy of distributed ITNs 
-- track and verifying the accuracy of captured points during data collection
-- Matching of settlements from GRID3 database to settlements on the p3b to add location to them
+During Nigeria's ITN (insecticide-treated net) mass campaigns, planning data lives in the **P3B microplan template** — an Excel workbook full of merged cells that is unusable for analysis as-is. This module turns the P3B into analysis-ready data, then provides tools used across the campaign lifecycle:
+
+- **Clean** the P3B template into a flat, analysis-ready table (ward and DH populated per settlement)
+- **Sample** 8 random settlements per LGA using Probability Proportional to Size (PPS) and generate a Google Maps directions link for each, for post-implementation revisit surveys (coverage, ownership, access, hanging rate)
+- **Track** field data collection progress in near-real time and **validate** that captured GPS points fall inside their correct ward boundary, flagging misplaced points with their distance (km) from the right ward
+- **Match** settlement names on the P3B to the GRID3 settlement database (fuzzy matching) so every planned settlement gets geo-coordinates for spatial analysis
+
+These tools were built for and used in live ITN campaign operations with GRID3 Nigeria data.
 
 ---
 
 ## 📦 Features
 
-### Cleaning of p3b template
-- The p3b template is an excel file with various merger cell which makes it hard to use it for data analysis see image below
+### Cleaning the P3B template
 
-<p align=center>
-<img src= "/images/p3b_header.png"/>
-<img src= "/images/p3b_cells.png"/>
-</p>
+The raw P3B is an Excel file with merged headers and cells:
 
-- This modules then unmerges all cells, removes unwanted columns and rows, set the right and populate a ward and DH for each settlement see image below
-<p align=center>
-<img src= /images/p3b_cells_populated.png/>
-</p>
+![](images/p3b_header.png)
+![](images/p3b_cells.png)
 
-### Creating 8 random settlement google directions per LGA for post-implementation revisits
-- Normally after every ITN campaign there is a post implementation activity which involves rapid assesment of  ITN distribution campaign to determine ITN coverage, ownership, access, hanging rate etc.
-- To do this random locations are selected  form each LGA for visit. Cluster selection (8) from from each LGA is done  using Probability Proportional to Size (PPS)
-- Giving the large number of LGAs it takes time to create this cluster
-- This module provides a tool to create this location and assign a google map direction
-<div>
-<p align=center > How it is done manually </p>
-<ol margin-left = 4rem>
-   <li>sort wards by thier population in ascending order</li>
-   <li>Create a cumulative frequency</li>
-   <li>set PPES interval</li>
-   <li>set a random starting point</li>
-   <li>create cluster increament the starting point with the interval</li>
-   <li>attach each cluster to the cummulative frequency range they fall in</li>
-   <li>Then manually get a random settlement direction from each cluster</li>
-</ol>
-<img src="/images/random_cluster_1-7.png"/>
-<img src="/images/random_cluster_8.png"/>
-</div>
+The module unmerges all cells, removes unwanted rows/columns, and populates the ward and Distribution Hub (DH) for every settlement:
 
-- Below is result created using this code
-<img src="/images/random_cluster_code.png" align=center/>
+![](images/p3b_cells_populated.png)
 
+### PPS random cluster sampling for post-implementation revisits
 
-### Tracking Data collection progess and points accuracy validation
-- This validates the accuray of points collected to confrim they fall in the right location (appropraite ward)
-- It then creates an excel file for those that are wrongly located to be reviewed by people responsible
-- the accurate points are then macthed with the points that are to be captured to ascertain point captured so far and points yet to be captured 
+After every campaign, a rapid assessment revisits randomly selected locations in each LGA. Manually, that means sorting wards by population, building a cumulative frequency, setting a PPS interval and random start, incrementing to select 8 clusters, then hand-picking a settlement and directions link per cluster — for every LGA:
 
-### Matching of settlements 
-- this matches settlements on the p3b to settlements on the GRID3 data base
-- this is done so that the settlements on the p3b can have geo-coordinates so that they can be used for spatials analysis
+![](images/random_cluster_1-7.png)
+![](images/random_cluster_8.png)
+
+This module automates all seven steps and outputs each selected settlement with a ready-made Google Maps directions link. A random revisit point is generated inside the most built-up settlement extent of the selected ward (using GRID3 building counts), so field teams are sent somewhere that actually contains households:
+
+![](images/random_cluster_code.png)
+
+### Tracking data collection progress and validating point accuracy
+
+- Validates that every captured settlement/DH point falls inside its declared ward boundary (`in_Ward` Yes/No)
+- For misplaced points, computes the **ellipsoidal distance in km** to the correct ward and records the matching GRID3 ward name, then exports an Excel review file for supervisors
+- Matches accurate points against the list of points to be captured and writes per-LGA Excel summaries: settlements captured per ward, settlements outstanding per ward, and totals
+
+### Matching settlements to the GRID3 database
+
+- Reshapes RedRose Collect field exports into clean settlement and DH tables (splitting GPS fields, mapping form questions to columns)
+- Fuzzy-matches P3B settlement names against the GRID3 settlement database (`difflib`) so planned settlements inherit coordinates for spatial analysis
+
+---
+
+## 🗺 Built with PyQGIS
+
+The spatial core of this project (`geo_script.py`) runs **QGIS headlessly** — no GUI, fully scripted:
+
+- **Standalone QGIS bootstrap**: `QgsApplication` initialised without a desktop session, plus `Processing.initialize()` to make the full processing framework available from plain Python
+- **Processing algorithms**: `qgis:selectbyexpression` (attribute-driven ward subsets) and `native:clip` (settlement extents clipped to ward boundaries), with a custom `QgsProcessingContext` set to `GeometryNoCheck` to survive imperfect real-world boundary data
+- **Multiple data providers**: `ogr` for shapefiles, `delimitedtext` for CSV point loads, and in-memory layers for intermediate results
+- **Geometry operations**: `contains()` for point-in-polygon ward checks, `centroid()` for revisit point generation, `nearestPoint()` for distance-to-ward
+- **Geodesy**: `QgsDistanceArea` configured with the layer's ellipsoid for accurate km measurements
+- **Schema editing**: adding and populating `QgsField` attributes (`in_Ward`, `dst_km`, `GRID3_Wrd`) via the data provider API
+- **Interop**: converters between `QgsVectorLayer` and pandas DataFrames so spatial results flow straight into the Excel reporting pipeline
 
 ---
 
 ## 📂 Repository Structure
 
-```sh
+```
 └── ITN/
     ├── Cluster/
     │   ├── cluster.py
     │   └── main.py
-    ├── geo_script.py
-    ├── helper.py
-    ├── main.py
-    ├── images/
     ├── Matching/
     │   ├── main.py
     │   └── matching.py
+    ├── Tracker/
+    │   ├── main.py
+    │   └── tracker.py
+    ├── images/
+    ├── geo_script.py
+    ├── helper.py
+    ├── main.py
+    ├── notebook.ipynb
     ├── p3b.py
-    ├── requirements.txt
-    └── Tracker/
-        ├── main.py
-        └── tracker.py
-
+    └── requirements.txt
 ```
 
 ---
 
-
 ## ⚙️ Modules
 
-<details closed><summary>Root</summary>
+**Root**
 
-| File                                                                             | Summary       |
-| ---                                                                              | ---           |
-| [geo_script.py](https://github.com/Mrsatatima/p3b/blob/main/geo_script.py)       | ► INSERT-TEXT |
-| [helper.py](https://github.com/Mrsatatima/p3b/blob/main/helper.py)               | ► INSERT-TEXT |
-| [main.py](https://github.com/Mrsatatima/p3b/blob/main/main.py)                   | ► INSERT-TEXT |
-| [notebook.ipynb](https://github.com/Mrsatatima/p3b/blob/main/notebook.ipynb)     | ► INSERT-TEXT |
-| [p3b.py](https://github.com/Mrsatatima/p3b/blob/main/p3b.py)                     | ► INSERT-TEXT |
-| [requirements.txt](https://github.com/Mrsatatima/p3b/blob/main/requirements.txt) | ► INSERT-TEXT |
-| [cluster.py](https://github.com/Mrsatatima/p3b/blob/main/Cluster\cluster.py)     | ► INSERT-TEXT |
-| [Cluster\main.py](https://github.com/Mrsatatima/p3b/blob/main/Cluster\main.py)           | ► INSERT-TEXT |
-| [Matching\main.py](https://github.com/Mrsatatima/p3b/blob/main/Matching\main.py)          | ► INSERT-TEXT |
-| [matching.py](https://github.com/Mrsatatima/p3b/blob/main/Matching\matching.py)  | ► INSERT-TEXT |
-| [Tracker\main.py](https://github.com/Mrsatatima/p3b/blob/main/Tracker\main.py)           | ► INSERT-TEXT |
-| [tracker.py](https://github.com/Mrsatatima/p3b/blob/main/Tracker\tracker.py)     | ► INSERT-TEXT |
+| File | Summary |
+| --- | --- |
+| [geo_script.py](geo_script.py) | PyQGIS spatial engine: headless QGIS init, processing algorithms (select by expression, clip), random revisit-point generation, point-in-ward validation with ellipsoidal distances, CSV↔layer↔DataFrame conversion |
+| [helper.py](helper.py) | Shared configuration and lookups: paths to GRID3 datasets (settlement points, settlement extents, ward/LGA boundaries) and LGA/ward name mappings between data sources |
+| [p3b.py](p3b.py) | P3B template cleaner: detects valid LGA sheets, unmerges cells, drops junk rows/columns, populates ward and DH per settlement, writes clean Excel output |
+| [main.py](main.py) | Entry point for the P3B cleaning workflow |
+| [notebook.ipynb](notebook.ipynb) | Exploratory notebook used during development |
 
-</details>
+**Cluster/**
+
+| File | Summary |
+| --- | --- |
+| [cluster.py](Cluster/cluster.py) | PPS sampling: cumulative population frequency per ward, interval + random start, 8 clusters per LGA, random settlement selection with Google Maps directions link |
+| [main.py](Cluster/main.py) | Entry point for cluster generation |
+
+**Matching/**
+
+| File | Summary |
+| --- | --- |
+| [matching.py](Matching/matching.py) | RedRose Collect export reshaping and fuzzy settlement-name matching against the GRID3 database |
+| [main.py](Matching/main.py) | Entry point for the matching workflow |
+
+**Tracker/**
+
+| File | Summary |
+| --- | --- |
+| [tracker.py](Tracker/tracker.py) | Compares captured points vs. points to capture; writes per-LGA Excel reports of progress and outstanding settlements |
+| [main.py](Tracker/main.py) | Entry point for tracking and point-accuracy validation |
 
 ---
 
@@ -148,144 +152,111 @@ A module mostly focus on cleaning the p3b template and turn it to a format you c
 
 ***Dependencies***
 
-Please ensure you have the following dependencies installed on your system:
-
-`- ℹ️ Python 3`
-
-`- ℹ️ pandas `
-
-`- ℹ️ qgis `
+- Python 3
+- QGIS 3.32 (PyQGIS)
+- pandas
+- openpyxl
 
 ### 🔧 Installation
 
-1. Clone the p3b repository:
+1. Clone the repository:
+
 ```sh
-git clone https://github.com/Mrsatatima/p3b.git
+git clone https://github.com/Mrsatatima/ITN.git
 ```
 
 2. Change to the project directory:
+
 ```sh
-cd p3b
+cd ITN
 ```
 
 3. Install the dependencies:
+
 ```sh
 pip install -r requirements.txt
 ```
 
-### 🤖 Running ITN
-- first before running the script open helper.py 
-- you need to download the Nigeria settlements points csv, settlement extent shapefile and ward and lga boundary shapile 
-<p align= center>
-<img src ="/images/helper_shapefile.png"/>
-</p>
+> **Note**: PyQGIS ships with a QGIS install rather than pip. Run the scripts with the Python bundled with QGIS (e.g. via `python-qgis.bat` on Windows or the OSGeo4W shell), and update the QGIS prefix path at the top of `geo_script.py` to match your installation.
 
-- use links in the comment to download
-- extract all to root directory
-### Cleaning of P3b template
-- open main.py in the main directory
-- assign values to the following variables
-<p align= center>
-<img src= "/images/p3b_main.png"/>
-</p>
+### Preparing the data
 
-- run the following code 
+- Open `helper.py` and download the Nigeria settlement points CSV, settlement extent shapefile, and ward/LGA boundary shapefiles using the links in the comments:
+
+![](images/helper_shapefile.png)
+
+- Extract everything to the root directory.
+
+### Cleaning the P3B template
+
+- Open `main.py` and assign values to the variables shown:
+
+![](images/p3b_main.png)
+
 ```sh
 python main.py
 ```
-- your output can be found in the root directory
-### Creating Creating 8 random settlement google directions per LGA for post-implementation revisits
-- open Cluster/main.py 
-- assign values to the following variables
-<p align= center>
-<img src ="/images/cluster_main.png"/>
-</p>
 
-- run the following code 
+- Output is written to the root directory.
+
+### Creating 8 random settlement directions per LGA
+
+- Open `Cluster/main.py` and assign values to the variables shown:
+
+![](images/cluster_main.png)
+
 ```sh
 python -m Cluster.main
 ```
-- your output can be found in the root directory
-### Matching of settlements 
-- open Matching/main.py 
-- assign values to the following variables
-<p align= center>
-<img src= "/images/matching_main.png"/>
-</p>
 
-- run the following code 
+### Matching settlements
+
+- Open `Matching/main.py` and assign values to the variables shown:
+
+![](images/matching_main.png)
+
 ```sh
 python -m Matching.main
 ```
-- your output can be found in the root directory
 
-### Tracking Data collection progess and points accuracy validation
-- open Tracker/main.py 
-- assign values to the following variables
-<p align= center>
-<img src= "/images/tracker_main.png"/>
-</p>
+### Tracking data collection and validating points
 
-- run the following code 
+- Open `Tracker/main.py` and assign values to the variables shown:
+
+![](images/tracker_main.png)
+
 ```sh
 python -m Tracker.main
 ```
-- your output can be found in the /lga/ directory
+
+- Output is written to the `/lga/` directory.
+
+---
+
+## 🛣 Roadmap
+
+- [ ] Move configuration (paths, QGIS prefix) out of code into a config file
+- [ ] Package as a QGIS plugin / CLI tool
+- [ ] Add unit tests for the cleaning and sampling logic
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here are several ways you can contribute:
+Contributions are welcome:
 
-- **[Submit Pull Requests](https://github.com/Mrsatatima/p3b/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
-- **[Join the Discussions](https://github.com/Mrsatatima/p3b/discussions)**: Share your insights, provide feedback, or ask questions.
-- **[Report Issues](https://github.com/Mrsatatima/p3b/issues)**: Submit bugs found or log feature requests for MRSATATIMA.
-
-#### *Contributing Guidelines*
-
-<details closed>
-<summary>Click to expand</summary>
-
-1. **Fork the Repository**: Start by forking the project repository to your GitHub account.
-2. **Clone Locally**: Clone the forked repository to your local machine using a Git client.
-   ```sh
-   git clone <your-forked-repo-url>
-   ```
-3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
-   ```sh
-   git checkout -b new-feature-x
-   ```
-4. **Make Your Changes**: Develop and test your changes locally.
-5. **Commit Your Changes**: Commit with a clear and concise message describing your updates.
-   ```sh
-   git commit -m 'Implemented new feature x.'
-   ```
-6. **Push to GitHub**: Push the changes to your forked repository.
-   ```sh
-   git push origin new-feature-x
-   ```
-7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
-
-Once your PR is reviewed and approved, it will be merged into the main branch.
-
-</details>
+- **[Submit Pull Requests](https://github.com/Mrsatatima/ITN/pulls)**: review open PRs or submit your own
+- **[Report Issues](https://github.com/Mrsatatima/ITN/issues)**: file bugs or feature requests
 
 ---
 
 ## 📄 License
 
-
-This project is protected under the MIT License. For more details, refer to the [LICENSE](https://github.com/Mrsatatima/p3b/blob/main/LICENSE) file.
+This project is released under the MIT License — see [LICENSE](LICENSE).
 
 ---
 
 ## 👏 Acknowledgments
 
-- [GRID3](https://grid3.org/) 
+- [GRID3](https://grid3.org/)
 - [QGIS](https://qgis.org/en/site/)
-
-[**Return**](#Top)
-
----
-
